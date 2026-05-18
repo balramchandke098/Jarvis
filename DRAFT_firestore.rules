@@ -1,0 +1,55 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() { return request.auth != null; }
+    function incoming() { return request.resource.data; }
+    function existing() { return resource.data; }
+
+    function isValidId(id) { 
+      // Size check for generic ID
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$'); 
+    }
+
+    function isValidTask(data) {
+      return data.keys().hasAll(['userId', 'title', 'description', 'status', 'createdAt', 'updatedAt']) &&
+             data.keys().size() == 6 &&
+             data.userId == request.auth.uid &&
+             data.userId is string && data.userId.size() <= 128 &&
+             data.title is string && data.title.size() <= 200 &&
+             data.description is string && data.description.size() <= 10000 &&
+             data.status is string && data.status.size() <= 20 &&
+             (data.status == 'pending' || data.status == 'completed' || data.status == 'cancelled') &&
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
+    }
+
+    match /tasks/{taskId} {
+      allow create: if isSignedIn() &&
+                       isValidId(taskId) &&
+                       isValidTask(incoming()) &&
+                       incoming().createdAt == request.time &&
+                       incoming().updatedAt == request.time;
+
+      allow read: if isSignedIn() &&
+                     isValidId(taskId) &&
+                     existing().userId == request.auth.uid;
+      
+      allow delete: if isSignedIn() &&
+                       isValidId(taskId) &&
+                       existing().userId == request.auth.uid;
+
+      allow update: if isSignedIn() &&
+                       isValidId(taskId) &&
+                       existing().userId == request.auth.uid &&
+                       isValidTask(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().updatedAt == request.time &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['status', 'title', 'description', 'updatedAt']);
+    }
+  }
+}

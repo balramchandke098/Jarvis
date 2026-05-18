@@ -1,0 +1,10 @@
+{
+  "name": "Jarvis Voice Assistant",
+  "description": "A real-time, voice-to-voice AI assistant web app with a futuristic UI and a witty persona, using Gemini Live API over WebSockets.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

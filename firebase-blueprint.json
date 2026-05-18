@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "Task": {
+      "title": "Task",
+      "description": "A task or memory stored by the AI.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Owner of this task"
+        },
+        "title": {
+          "type": "string",
+          "description": "A short summary of the task"
+        },
+        "description": {
+          "type": "string",
+          "description": "Memory or task content details"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "completed", "cancelled"],
+          "description": "Status of the task"
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Timestamp creation"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Timestamp updated"
+        }
+      },
+      "required": ["userId", "title", "description", "status", "createdAt", "updatedAt"]
+    }
+  },
+  "firestore": {
+    "tasks": {
+      "schema": { "$ref": "#/entities/Task" },
+      "description": "Tasks or memories for the user."
+    }
+  }
+}
