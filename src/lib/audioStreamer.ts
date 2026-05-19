@@ -50,10 +50,20 @@ export class AudioStreamer {
     this.isRecording = true;
   }
 
-  playAudioChunk(base64: string) {
+  playAudioChunk(data: string | Uint8Array) {
     if (!this.audioCtx) return;
 
-    const pcm16 = base64ToPcm16(base64);
+    let pcm16;
+    if (typeof data === "string") {
+      pcm16 = base64ToPcm16(data);
+    } else if (data instanceof Uint8Array) {
+      // Direct binary to pcm16
+      const buffer = data.buffer.slice(data.byteOffset, data.byteOffset + data.byteLength);
+      pcm16 = new Int16Array(buffer);
+    } else {
+      return;
+    }
+
     const float32 = pcm16ToFloat32(pcm16);
     // Response audio from Live API is 24kHz
     const buffer = this.audioCtx.createBuffer(1, float32.length, 24000);

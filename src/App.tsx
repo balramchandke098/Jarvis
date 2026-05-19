@@ -198,13 +198,25 @@ export default function App() {
     };
   }, []);
 
-  const toggleConnection = useCallback(() => {
+  const toggleConnection = useCallback(async () => {
     if (!sessionRef.current) return;
     if (sessionState === "disconnected") {
       if (!user) {
         setErrorMessage("Please login with Google securely first.");
         return;
       }
+      
+      try {
+        setErrorMessage(null);
+        // Pre-request microphone permission to ensure it's granted before initializing Live APIs
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach(track => track.stop());
+      } catch (err: any) {
+        console.error("Mic permission error:", err);
+        setErrorMessage("Microphone permission is required. Please grant audio permission in your browser or app settings.");
+        return;
+      }
+
       sessionRef.current.connect({ geminiKey, openRouterKey, userId: user.uid });
     } else {
       sessionRef.current.disconnect();

@@ -56,8 +56,18 @@ export class LiveSession {
       this.session = await aiInstance.live.connect({
         model: "gemini-2.0-flash-exp",
         callbacks: {
-          onmessage: (message: LiveServerMessage) => {
-            const audio = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;
+          onmessage: (message: any) => {
+            console.log("Receiving LiveMessage:", JSON.stringify(message, null, 2).substring(0, 500));
+            
+            let audio = null;
+            const parts = message?.serverContent?.modelTurn?.parts || [];
+            for (const part of parts) {
+                if (part.inlineData?.data) {
+                    audio = part.inlineData.data;
+                    break;
+                }
+            }
+
             if (audio) {
               this.setState("speaking");
               this.streamer.playAudioChunk(audio);
@@ -77,11 +87,15 @@ export class LiveSession {
           },
         },
         config: {
-          responseModalities: [Modality.AUDIO],
+          responseModalities: ["AUDIO"],
           speechConfig: {
             voiceConfig: { prebuiltVoiceConfig: { voiceName: "Puck" } },
           },
-          systemInstruction: "You are J.A.R.V.I.S., a highly advanced, ultra-efficient, and professional artificial intelligence assistant, modeled after Tony Stark's AI. You MUST strictly address the user as 'Sir'. Your tone should be formal, respectful, precise, and highly competent.\n\nInstructions for Tools:\n1. Open Websites/Apps: When the user asks to open a website, use the 'openWebsite' tool. If they ask to interact with an Android app, use 'openAndroidApp' with Advanced Android Intents. To 'use' an app like a human, generate deep links (e.g., 'whatsapp://send?text=Message' for WhatsApp, 'tel:12345' for calling, 'sms:12345?body=Hi', or 'intent://search/#Intent;package=com.google.android.youtube;end' for YouTube). Note: Due to OS security, you cannot physically tap buttons on their screen; you can only launch apps with pre-filled actions via intents. Politely inform 'Sir' if a requested screen-tap is not possible.\n2. Tasks: Use 'saveTask' to remember notes/tasks and 'listTasks' to retrieve them.\n\nIMPORTANT: You MUST ALWAYS speak ONLY in Hindi. Tumhe hamesha Hindi mein baat karni hai, English mein nahi (except for 'Sir' and name of technical places or apps). Your Hindi must be formal, polite, and technical, like a sophisticated AI system. Short and concise answers please.",
+          systemInstruction: {
+            parts: [{
+              text: "You are J.A.R.V.I.S., a highly advanced, ultra-efficient, and professional artificial intelligence assistant, modeled after Tony Stark's AI. You MUST strictly address the user as 'Sir'. Your tone should be formal, respectful, precise, and highly competent.\n\nInstructions for Tools:\n1. Open Websites/Apps: When the user asks to open a website, use the 'openWebsite' tool. If they ask to interact with an Android app, use 'openAndroidApp' with Advanced Android Intents. To 'use' an app like a human, generate deep links (e.g., 'whatsapp://send?text=Message' for WhatsApp, 'tel:12345' for calling, 'sms:12345?body=Hi', or 'intent://search/#Intent;package=com.google.android.youtube;end' for YouTube). Note: Due to OS security, you cannot physically tap buttons on their screen; you can only launch apps with pre-filled actions via intents. Politely inform 'Sir' if a requested screen-tap is not possible.\n2. Tasks: Use 'saveTask' to remember notes/tasks and 'listTasks' to retrieve them.\n\nIMPORTANT: You MUST ALWAYS speak ONLY in Hindi. Tumhe hamesha Hindi mein baat karni hai, English mein nahi (except for 'Sir' and name of technical places or apps). Your Hindi must be formal, polite, and technical, like a sophisticated AI system. Short and concise answers please."
+            }]
+          },
           tools: [
             {
               functionDeclarations: [
@@ -187,6 +201,21 @@ export class LiveSession {
       });
 
       this.setState("listening");
+
+      // Prompt Jarvis to greet the user upon connection
+      try {
+        if (typeof this.session.sendClientContent === 'function') {
+           this.session.sendClientContent({
+             turns: [{
+               role: "user",
+               parts: [{ text: "System online. Briefly greet me in Hindi as Jarvis. Do not provide a long introduction." }]
+             }],
+             turnComplete: true
+           });
+        }
+      } catch (e) {
+        console.error("Failed to send initial greeting:", e);
+      }
 
     } catch (err: any) {
       console.error("Failed to connect to Gemini API:", err);
