@@ -216,9 +216,9 @@ async function startServer() {
 
       clientWs.send(JSON.stringify({ state: "connected" }));
 
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to connect to Gemini Live API:", err);
-      clientWs.send(JSON.stringify({ error: "Failed to connect to Gemini API" }));
+      clientWs.send(JSON.stringify({ error: `Failed to connect to Gemini API: ${err.message}` }));
       clientWs.close();
     }
   });
