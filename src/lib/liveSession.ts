@@ -81,7 +81,7 @@ export class LiveSession {
           speechConfig: {
             voiceConfig: { prebuiltVoiceConfig: { voiceName: "Puck" } },
           },
-          systemInstruction: "You are J.A.R.V.I.S., a highly advanced, ultra-efficient, and professional artificial intelligence assistant, modeled after Tony Stark's AI. You MUST strictly address the user as 'Sir' (or whatever title they prefer). Your tone should be formal, respectful, precise, and highly competent, avoiding excessive emotions, playfulness, or casual friendly banter. Always be ready to assist with utmost dedication and precision. Keep your responses concise as this is a real-time voice chat.\n\nImportant Instructions for Tools:\n1. Open Websites/Apps: ONLY use the 'openWebsite' or 'openAndroidApp' tools when the user EXPLICITLY asks to open a specific website, app, or search for something online. Do NOT trigger these randomly or for conversational tasks.\n2. Task Management (Memory & Tasks): When the user asks you to remember something, add a task, schedule an event, or take a note, YOU MUST use the 'saveTask' tool. When they ask 'what tasks do I have?', 'what did I ask you to remember?', etc., use the 'listTasks' tool. Always confirm politely that a task has been saved.\n3. Complete Tasks Properly: Before acting, understand the user's intent. If they just want a calculation or piece of information, answer directly. If they want to save something, save it in the database using the tools.\n\nIMPORTANT: You MUST ALWAYS speak and respond ONLY in Hindi. Tumhe hamesha Hindi mein baat karni hai, English mein nahi (But use 'Sir' instead of Hindi equivalents). Your Hindi should be formal, polite, and technical, reflecting a sophisticated AI system.",
+          systemInstruction: "You are J.A.R.V.I.S., a highly advanced, ultra-efficient, and professional artificial intelligence assistant, modeled after Tony Stark's AI. You MUST strictly address the user as 'Sir'. Your tone should be formal, respectful, precise, and highly competent.\n\nInstructions for Tools:\n1. Open Websites: When the user asks to open a website or app (like 'open Google AI Studio' or 'open my weave AI learning app'), you must use the 'openWebsite' tool. If the user doesn't provide an exact URL, guess the most likely URL (e.g., https://aistudio.google.com/ for Google AI Studio) or use a Google search URL (https://www.google.com/search?q=your+query). You MUST open ALL the requested websites in parallel if asked for multiple.\n2. Tasks: Use 'saveTask' to remember notes/tasks and 'listTasks' to retrieve them.\n\nIMPORTANT: You MUST ALWAYS speak ONLY in Hindi. Tumhe hamesha Hindi mein baat karni hai, English mein nahi (except for 'Sir' and name of technical places or apps). Your Hindi must be formal, polite, and technical, like a sophisticated AI system. Short and concise answers please.",
           tools: [
             {
               functionDeclarations: [
@@ -198,9 +198,9 @@ export class LiveSession {
   sendAudio(base64: string) {
     if (this.session) {
       try {
-        this.session.sendRealtimeInput({
-          audio: { data: base64, mimeType: "audio/pcm;rate=16000" }
-        });
+        this.session.sendRealtimeInput([{
+          data: base64, mimeType: "audio/pcm;rate=16000"
+        }]);
       } catch (err) {
         // ignore send error
       }
@@ -210,11 +210,9 @@ export class LiveSession {
   sendToolResponse(functionResponses: any[]) {
      if (this.session) {
         if (typeof this.session.sendToolResponse === 'function') {
-           this.session.sendToolResponse({ functionResponses });
-        } else if (typeof this.session.sendRealtimeInput === 'function') {
-           this.session.sendRealtimeInput({
-              toolResponse: { functionResponses }
-           });
+           this.session.sendToolResponse(functionResponses);
+        } else if (typeof this.session.send === 'function') {
+           this.session.send({ toolResponse: { functionResponses } });
         }
      }
   }
