@@ -420,9 +420,20 @@ export default function App() {
               {(errorMessage.includes("new tab") || errorMessage.includes("denied")) && (
                 <button 
                   onClick={() => window.open(window.location.href, "_blank")}
-                  className="mt-3 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-white text-xs font-bold uppercase tracking-widest border border-red-500/50 rounded transition-colors"
+                  className="mt-3 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-white text-xs font-bold uppercase tracking-widest border border-red-500/50 rounded transition-colors w-full"
                 >
                   Open App in New Tab
+                </button>
+              )}
+              {errorMessage.includes("login") && (
+                <button 
+                  onClick={() => {
+                     loginWithGoogle().then(() => setErrorMessage(null)).catch(e => setErrorMessage(e.message));
+                  }}
+                  className="mt-3 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 text-xs font-bold uppercase tracking-widest border border-blue-500/50 rounded transition-colors flex justify-center items-center gap-2 w-full"
+                >
+                  <LogIn className="w-4 h-4" />
+                  Login with Google
                 </button>
               )}
             </div>
