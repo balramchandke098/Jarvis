@@ -54,7 +54,7 @@ export class LiveSession {
       });
 
       this.session = await aiInstance.live.connect({
-        model: "gemini-3.1-flash-live-preview",
+        model: "gemini-2.0-flash-exp",
         callbacks: {
           onmessage: (message: LiveServerMessage) => {
             const audio = message.serverContent?.modelTurn?.parts[0]?.inlineData?.data;

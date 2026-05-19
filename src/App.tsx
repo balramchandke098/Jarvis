@@ -60,7 +60,13 @@ export default function App() {
              const url = call.args?.url;
              console.log("Opening website", url);
              if (url) {
-                window.open(url, "_blank", "noopener,noreferrer");
+                // Use a tag for better Android WebView compatibility
+                const a = document.createElement('a');
+                a.href = url;
+                a.target = '_blank';
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => document.body.removeChild(a), 100);
                 functionResponses.push({
                    id: call.id,
                    name: call.name,
@@ -97,10 +103,17 @@ export default function App() {
              const intentUri = call.args?.intentUri;
              console.log("Opening Android app", packageName, intentUri);
              
+             const a = document.createElement('a');
              if (intentUri) {
-                window.location.href = intentUri;
+                a.href = intentUri;
              } else if (packageName) {
-                window.location.href = `intent://#Intent;package=${packageName};end`;
+                a.href = `intent://#Intent;package=${packageName};end`;
+             }
+             if (a.href) {
+                a.target = '_top'; // Best for WebViews to intercept intents
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => document.body.removeChild(a), 100);
              }
              
              functionResponses.push({
