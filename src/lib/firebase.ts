@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, signInWithRedirect, GoogleAuthProvider, signOut, getRedirectResult } from 'firebase/auth';
-import { getFirestore, doc, getDocFromServer } from 'firebase/firestore';
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
+import { getFirestore } from 'firebase/firestore';
 
 const firebaseConfig = {
   apiKey: "AIzaSyCHz3nzolKLCKC8W7kYbedcXQgH4XBgVJo",
@@ -16,14 +16,9 @@ export const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app);
 export const auth = getAuth(app);
 
-// Check for redirect results immediately
-getRedirectResult(auth).catch((error) => {
-  console.error("Redirect sign-in error:", error);
-});
-
 export const loginWithGoogle = async () => {
     const provider = new GoogleAuthProvider();
-    return signInWithRedirect(auth, provider);
+    return signInWithPopup(auth, provider);
 }
 
 export const logout = async () => {

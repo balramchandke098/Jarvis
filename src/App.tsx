@@ -8,7 +8,7 @@ import { Mic, MicOff, Loader2, Square, Headphones, Settings, X, Save, LogIn, Log
 import { motion, AnimatePresence } from "motion/react";
 import { LiveSession, SessionState } from "./lib/liveSession";
 import { auth, loginWithGoogle, logout, db } from "./lib/firebase";
-import { onAuthStateChanged, User, getRedirectResult } from "firebase/auth";
+import { onAuthStateChanged, User } from "firebase/auth";
 import { collection, addDoc, getDocs, doc, updateDoc, query, where, serverTimestamp } from "firebase/firestore";
 
 export default function App() {
@@ -23,15 +23,6 @@ export default function App() {
   const sessionRef = useRef<LiveSession | null>(null);
 
   useEffect(() => {
-    // Check for redirect result when returning back to the app in WebView
-    getRedirectResult(auth).catch((e) => {
-      let msg = e.message;
-      if (e.code === 'auth/unauthorized-domain') {
-          msg = "Domain not authorized! Apne Firebase Console (Authentication -> Settings -> Authorized domains) me ye domain add karein.";
-      }
-      setErrorMessage(msg);
-    });
-
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
     });
