@@ -8,7 +8,7 @@ import { Mic, MicOff, Loader2, Square, Headphones, Settings, X, Save, LogIn, Log
 import { motion, AnimatePresence } from "motion/react";
 import { LiveSession, SessionState } from "./lib/liveSession";
 import { auth, loginWithGoogle, logout, db } from "./lib/firebase";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, User, getRedirectResult } from "firebase/auth";
 import { collection, addDoc, getDocs, doc, updateDoc, query, where, serverTimestamp } from "firebase/firestore";
 
 export default function App() {
@@ -23,6 +23,15 @@ export default function App() {
   const sessionRef = useRef<LiveSession | null>(null);
 
   useEffect(() => {
+    // Check for redirect result when returning back to the app in WebView
+    getRedirectResult(auth).catch((e) => {
+      let msg = e.message;
+      if (e.code === 'auth/unauthorized-domain') {
+          msg = "Domain not authorized! Apne Firebase Console (Authentication -> Settings -> Authorized domains) me ye domain add karein.";
+      }
+      setErrorMessage(msg);
+    });
+
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u);
     });
@@ -252,7 +261,13 @@ export default function App() {
           </div>
 
           <button
-            onClick={() => user ? logout() : loginWithGoogle()}
+            onClick={() => user ? logout() : loginWithGoogle().catch(e => {
+                let msg = e.message;
+                if (e.code === 'auth/unauthorized-domain') {
+                    msg = "Domain not authorized! Apne Firebase Console (Authentication -> Settings -> Authorized domains) me ye domain add karein.";
+                }
+                setErrorMessage(msg);
+            })}
             className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-white transition-colors"
           >
             {user ? (
@@ -428,7 +443,13 @@ export default function App() {
               {errorMessage.includes("login") && (
                 <button 
                   onClick={() => {
-                     loginWithGoogle().then(() => setErrorMessage(null)).catch(e => setErrorMessage(e.message));
+                     loginWithGoogle().then(() => setErrorMessage(null)).catch(e => {
+                        let msg = e.message;
+                        if (e.code === 'auth/unauthorized-domain') {
+                            msg = "Domain not authorized! Apne Firebase Console (Authentication -> Settings -> Authorized domains) me ye domain add karein.";
+                        }
+                        setErrorMessage(msg);
+                     });
                   }}
                   className="mt-3 px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 text-xs font-bold uppercase tracking-widest border border-blue-500/50 rounded transition-colors flex justify-center items-center gap-2 w-full"
                 >
